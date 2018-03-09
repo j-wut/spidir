@@ -11,9 +11,9 @@ function recursiveDir(path){
             if(file.charAt(0)!='.'){
                 let fPath=path+'/'+file;
                 if(fs.lstatSync(fPath).isDirectory()){
-                    ret[file]=recursiveDir(fPath);
+                    ret[file]=['directory',fPath,recursiveDir(fPath)];
                 }else{
-                    ret[file]=fPath;
+                    ret[file]=['file',fPath];
                 }
             }            
         });
@@ -65,7 +65,7 @@ function fsController(req,res,next){
 }
 
 var file_server = restify.createServer();
-file_server.get('/fs/:path.*/',fsController);
+file_server.get('/fs.*/',fsController);
 
 file_server.listen(8080,function(){
     console.log('%s listening at %s', file_server.name, file_server.url);
