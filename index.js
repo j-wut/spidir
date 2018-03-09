@@ -4,27 +4,25 @@ const restify = require('restify');
 const root="fs";
 
 function recursiveDir(path){
-    let ret = [];
+    let ret = {};
     try{
         let files = fs.readdirSync(path);
         files.forEach(file => {
             if(file.charAt(0)!='.'){
                 let fPath=path+'/'+file;
                 if(fs.lstatSync(fPath).isDirectory()){
-                    ret.push({file:recursiveDir(fPath)});
-                    //ret[file]=recursiveDir(fPath);
+                    ret[file]=recursiveDir(fPath);
                 }else{
-                    ret.push(file);
-                    //[file]=null;
+                    ret[file]=fPath;
                 }
             }            
         });
     }catch(err){
         console.log(err);
     }
+    console.log(Object.keys(ret));
     return ret;
 }
-
 function genFS(path,res,next){
     try{
         res.send(recursiveDir(path));
@@ -34,8 +32,25 @@ function genFS(path,res,next){
     }
     next();
 }
+
+function serveFile(relativePath,res,next){
+    res.header('content-type','application/octet-stream');
+    res.header('content-disposition', 'attachment');
+    try{
+        fs.createReadStream(relativePath).pipe(res);
+    }catch(err){
+        console.log(err);
+    }
+    next();
+
+}
+
 function fsController(req,res,next){
-    let relativePath = req.url.substring(1);
+    let relativePath=req.url.substring(1);
+    if(req.url.charAt(req.url.length-1) === '/'){
+        relativePath= req.url.substring(1,req.url.length-1);
+        console.log(req.url.length);
+    }
     try{
         if(fs.lstatSync(relativePath).isDirectory()){
             genFS(relativePath,res,next);
@@ -44,7 +59,8 @@ function fsController(req,res,next){
         }
     }catch(err){
         console.log(err);
-        res.send(err);
+        res.send("Server Error");
+        next();
     }
 }
 
