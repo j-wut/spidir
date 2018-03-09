@@ -1,0 +1,25 @@
+{
+  "name": "spidir",
+  "version": "1.0.0",
+  "description": "https://gist.github.com/dtrce/1204243",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/j-wut/spidir.git"
+  },
+  "author": "James Wu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/j-wut/spidir/issues"
+  },
+  "homepage": "https://github.com/j-wut/spidir#readme",
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "http": "0.0.0",
+    "jsfs": "^0.9.2",
+    "restify": "^6.3.4"
+  }
+}
