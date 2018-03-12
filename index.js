@@ -52,7 +52,12 @@ function serveFile(relativePath,res){
     res.header('content-type','application/octet-stream');
     res.header('content-disposition', 'attachment');
     try{
-        fs.createReadStream(relativePath).pipe(res);
+        let readPipe=fs.createReadStream(relativePath);
+        readPipe.on('error',function(e){
+            readPipe.end();
+        }).pipe(res).on('error',function(e){
+            res.end();
+        });
     }catch(err){
         console.log(err);
     }
@@ -102,12 +107,12 @@ function serveMusic(res,path){
         let match = path.match(audioReg);
         console.log(match);
         if(match){
-            // switch(match[0]){
-            //     case '.wav':res.header('content-type','audio/wav');break;
-            //     case '.mp3':res.header('content-type','audio/mpeg');break;
-            // }
-            // res.header('content-type','audio/mpeg');
-            fs.createReadStream(root+path).pipe(res);
+            let readPipe=fs.createReadStream(root+path);
+            readPipe.on('error',function(e){
+                readPipe.end();
+            }).pipe(res).on('error',function(e){
+                res.end();
+            });
         }
     }catch(err)
     {
@@ -116,7 +121,7 @@ function serveMusic(res,path){
 }
 function musicController(req,res,next){
     console.log(req.url);
-    console.log(res.header('Access-Control-Allow-Origin','*'));
+    //console.log(res.header('Access-Control-Allow-Origin','*'));
     try{
         if(req.url==='/music'){
             listMusic(res);
@@ -133,14 +138,14 @@ function musicController(req,res,next){
 //music route complete
 
 var file_server = restify.createServer();
-file_server.get('/fs.*/',fsController);
-file_server.get('/music.*/',musicController);
-
 const cors = corsMiddleware({
     origins:['*']
 });
 file_server.pre(cors.preflight);
 file_server.use(cors.actual);
+file_server.get('/fs.*/',fsController);
+file_server.get('/music.*/',musicController);
+
 
 file_server.listen(8080,function(){
     console.log('%s listening at %s', file_server.name, file_server.url);
