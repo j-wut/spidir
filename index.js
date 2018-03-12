@@ -1,6 +1,5 @@
 const fs = require('fs');
 const restify = require('restify');
-const musicmeta = require('music-metadata');
 
 const root="fs";
 
@@ -21,11 +20,12 @@ function recursiveDir(path,reg,inc){
                         ret.push({'fileName': file,'type':'DIR','path':fPath,'files':recursiveDir(fPath)});
                         //ret[file]={'type':'DIR','path':fPath,'files':recursiveDir(fPath)};
                     }else{
-                        ret.push(recursiveDir(fPath,reg,inc)[0]);
+                        ret.concat(recursiveDir(fPath,reg,inc));
                     }
                 }else{
                     if(file.match(reg)){
-                        ret.push({'fileName': file,'type':'FILE','path':fPath, 'id':fStats.ino});
+                        console.log("match?");
+                        ret.push({'fileName': file,'type':'FILE','path':fPath});//, 'id':fStats.ino});
                         //ret[file]={'type':'FILE','path':fPath};
                     }
                 }
@@ -85,9 +85,7 @@ function listMusic(res){
     try{
         let ret = recursiveDir(root,audioReg,false);
         for(let i = 0;i<ret.length;i++){
-            musicmeta.parseFile(ret[i].path,{duration:true, skipCovers:true}).then(function(audiometa){
-                console.log(audiometa);
-            });
+                //synchronously add duration to this... gotta find a library
         }
         res.send(ret);
     }catch(err)
