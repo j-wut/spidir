@@ -1,10 +1,11 @@
 const fs = require('fs');
 const restify = require('restify');
+const taglib = require('taglib2');
 
 const root="fs";
 
 const hideReg=/^[^.]/;
-const audioReg=/(\.txt$)|(\.mp3$)|(\.wav$)/;
+const audioReg=/(\.mp3$)|(\.wav$)/;
 
 //generates list of files matching regex
 function recursiveDir(path,reg,inc){
@@ -46,9 +47,7 @@ function genFS(path,res){
         res.send(err);
     }
 }
-
 function serveFile(relativePath,res){
-    console.log('?');
     res.header('content-type','application/octet-stream');
     res.header('content-disposition', 'attachment');
     try{
@@ -57,7 +56,6 @@ function serveFile(relativePath,res){
         console.log(err);
     }
 }
-
 function fsController(req,res,next){
     let relativePath=req.url.substring(1);
     if(req.url.charAt(req.url.length-1) === '/'){
@@ -85,7 +83,12 @@ function listMusic(res){
     try{
         let ret = recursiveDir(root,audioReg,false);
         for(let i = 0;i<ret.length;i++){
-                //synchronously add duration to this... gotta find a library
+                //synchronously add metadata to this... gotta find a library (probably use taglib)
+                try{
+                    ret[i]['tags']=taglib.readTagsSync(root+ret[i].path);
+                }catch(err){
+                    console.log('taglib error')
+                }
         }
         res.send(ret);
     }catch(err)
@@ -93,16 +96,16 @@ function listMusic(res){
         console.log(err);
     }
 }
-
 function serveMusic(res,path){
     try{
         let match = path.match(audioReg);
         console.log(match);
         if(match){
-            switch(match[0]){
-                case '.wav':res.header('content-type','audio/wav');break;
-                case '.mp3':res.header('content-type','audio/mpeg');break;
-            }
+            // switch(match[0]){
+            //     case '.wav':res.header('content-type','audio/wav');break;
+            //     case '.mp3':res.header('content-type','audio/mpeg');break;
+            // }
+            // res.header('content-type','audio/mpeg');
             fs.createReadStream(root+path).pipe(res);
         }
     }catch(err)
@@ -110,10 +113,9 @@ function serveMusic(res,path){
 
     }
 }
-
-
 function musicController(req,res,next){
     console.log(req.url);
+    console.log(res.header('Access-Control-Allow-Origin','*'));
     try{
         if(req.url==='/music'){
             listMusic(res);
@@ -127,11 +129,18 @@ function musicController(req,res,next){
     }
     next();
 }
+//music route complete
 
 var file_server = restify.createServer();
 file_server.get('/fs.*/',fsController);
 file_server.get('/music.*/',musicController);
-
+file_server.use(
+    function crossOrigin(req,res,next){
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Headers", "X-Requested-With");
+      return next();
+    }
+  );
 file_server.listen(8080,function(){
     console.log('%s listening at %s', file_server.name, file_server.url);
 })

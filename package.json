@@ -17,8 +17,10 @@
   },
   "homepage": "https://github.com/j-wut/spidir#readme",
   "dependencies": {
+    "domain": "0.0.1",
     "fs": "0.0.1-security",
     "http": "0.0.0",
-    "restify": "^6.3.4"
+    "restify": "^6.3.4",
+    "taglib2": "^2.9.6"
   }
 }
