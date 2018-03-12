@@ -4,7 +4,7 @@ const restify = require('restify');
 const root="fs";
 
 const hideReg=/^[^.]/;
-const audioReg=/(\.mp3$)|(\.wav$)/;
+const audioReg=/(\.txt$)|(\.mp3$)|(\.wav$)/;
 
 //generates list of files matching regex
 function recursiveDir(path,reg,inc){
@@ -17,7 +17,7 @@ function recursiveDir(path,reg,inc){
                 let fStats=fs.lstatSync(fPath);
                 if(fStats.isDirectory()){
                     if(inc){
-                        ret.push({'fileName': file,'type':'DIR','path':fPath,'files':recursiveDir(fPath)});
+                        ret.push({'fileName': file,'type':'DIR','path':fPath.substring(root.length),'files':recursiveDir(fPath)});
                         //ret[file]={'type':'DIR','path':fPath,'files':recursiveDir(fPath)};
                     }else{
                         ret.concat(recursiveDir(fPath,reg,inc));
@@ -25,7 +25,7 @@ function recursiveDir(path,reg,inc){
                 }else{
                     if(file.match(reg)){
                         console.log("match?");
-                        ret.push({'fileName': file,'type':'FILE','path':fPath});//, 'id':fStats.ino});
+                        ret.push({'fileName': file,'type':'FILE','path':fPath.substring(root.length)});//, 'id':fStats.ino});
                         //ret[file]={'type':'FILE','path':fPath};
                     }
                 }
@@ -94,23 +94,43 @@ function listMusic(res){
     }
 }
 
+function serveMusic(res,path){
+    try{
+        let match = path.match(audioReg);
+        console.log(match);
+        if(match){
+            switch(match[0]){
+                case '.wav':res.header('content-type','audio/wav');break;
+                case '.mp3':res.header('content-type','audio/mpeg');break;
+            }
+            fs.createReadStream(root+path).pipe(res);
+        }
+    }catch(err)
+    {
+
+    }
+}
+
 
 function musicController(req,res,next){
-    let id= req.params.id;
+    console.log(req.url);
     try{
-        if(id.toLowerCase()==='list'){
-            listMusic(res)
+        if(req.url==='/music'){
+            listMusic(res);
+        } else{
+            console.log(req.url.substring(6));
+            serveMusic(res,req.url.substring(6));
         }
     }catch(err){
         res.send(err);
-        console.log("ID error: id = "+id);
+        console.log("music controller error");
     }
     next();
 }
 
 var file_server = restify.createServer();
 file_server.get('/fs.*/',fsController);
-file_server.get('/music/:id',musicController);
+file_server.get('/music.*/',musicController);
 
 file_server.listen(8080,function(){
     console.log('%s listening at %s', file_server.name, file_server.url);
