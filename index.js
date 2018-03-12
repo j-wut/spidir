@@ -1,6 +1,7 @@
 const fs = require('fs');
 const restify = require('restify');
 const taglib = require('taglib2');
+const corsMiddleware=require('restify-cors-middleware');
 
 const root="fs";
 
@@ -134,13 +135,13 @@ function musicController(req,res,next){
 var file_server = restify.createServer();
 file_server.get('/fs.*/',fsController);
 file_server.get('/music.*/',musicController);
-file_server.use(
-    function crossOrigin(req,res,next){
-      res.header("Access-Control-Allow-Origin", "*");
-      res.header("Access-Control-Allow-Headers", "X-Requested-With");
-      return next();
-    }
-  );
+
+const cors = corsMiddleware({
+    origins:['*']
+});
+file_server.pre(cors.preflight);
+file_server.use(cors.actual);
+
 file_server.listen(8080,function(){
     console.log('%s listening at %s', file_server.name, file_server.url);
 })
