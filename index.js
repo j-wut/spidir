@@ -26,7 +26,6 @@ function recursiveDir(path,reg,inc){
                     }
                 }else{
                     if(file.match(reg)){
-                        console.log("match?");
                         ret.push({'fileName': file,'type':'FILE','path':fPath.substring(root.length)});//, 'id':fStats.ino});
                         //ret[file]={'type':'FILE','path':fPath};
                     }
@@ -105,7 +104,6 @@ function listMusic(res){
 function serveMusic(res,path){
     try{
         let match = path.match(audioReg);
-        console.log(match);
         if(match){
             let readPipe=fs.createReadStream(root+path);
             readPipe.on('error',function(e){
