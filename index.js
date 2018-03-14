@@ -3,7 +3,7 @@ const restify = require('restify');
 const taglib = require('taglib2');
 const corsMiddleware=require('restify-cors-middleware');
 
-const rootfs="fs";
+const rootfs="../Dropbox";
 
 const hideReg=/^[^.]/;
 const audioReg=/(\.mp3$)|(\.wav$)/;
@@ -19,14 +19,14 @@ function recursiveDir(path,reg,inc){
                 let fStats=fs.lstatSync(fPath);
                 if(fStats.isDirectory()){
                     if(inc){
-                        ret.push({'fileName': file,'type':'DIR','path':fPath.substring(root.length),'files':recursiveDir(fPath)});
+                        ret.push({'fileName': file,'type':'DIR','path':fPath.substring(rootfs.length),'files':recursiveDir(fPath)});
                         //ret[file]={'type':'DIR','path':fPath,'files':recursiveDir(fPath)};
                     }else{
                         ret.concat(recursiveDir(fPath,reg,inc));
                     }
                 }else{
                     if(file.match(reg)){
-                        ret.push({'fileName': file,'type':'FILE','path':fPath.substring(root.length)});//, 'id':fStats.ino});
+                        ret.push({'fileName': file,'type':'FILE','path':fPath.substring(rootfs.length)});//, 'id':fStats.ino});
                         //ret[file]={'type':'FILE','path':fPath};
                     }
                 }
@@ -66,6 +66,7 @@ function fsController(req,res,next){
     if(req.url.charAt(req.url.length-1) === '/'){
         relativePath= req.url.substring(1,req.url.length-1);
     }
+    relativePath=rootfs+relativePath.substring(2);
     console.log("url request: "+req.url+", formatted url: "+relativePath);
     try{
         if(fs.lstatSync(relativePath).isDirectory()){
@@ -90,9 +91,9 @@ function listMusic(res){
         for(let i = 0;i<ret.length;i++){
                 //synchronously add metadata to this... gotta find a library (probably use taglib)
                 try{
-                    ret[i]['tags']=taglib.readTagsSync(root+ret[i].path);
+                    ret[i]['tags']=taglib.readTagsSync(rootfs+ret[i].path);
                 }catch(err){
-                    console.log('taglib error')
+                    console.log('taglib error:\n'+err);
                 }
         }
         res.send(ret);
@@ -105,7 +106,7 @@ function serveMusic(res,path){
     try{
         let match = path.match(audioReg);
         if(match){
-            let readPipe=fs.createReadStream(root+path);
+            let readPipe=fs.createReadStream(rootfs+path);
             readPipe.on('error',function(e){
                 readPipe.end();
             }).pipe(res).on('error',function(e){
