@@ -53,8 +53,10 @@ function serveFile(relativePath,res){
     try{
         let readPipe=fs.createReadStream(relativePath);
         readPipe.on('error',function(e){
+            console.log('readStream error');
             readPipe.end();
         }).pipe(res).on('error',function(e){
+	    console.log('pipe error');
             res.end();
         });
     }catch(err){
@@ -108,8 +110,10 @@ function serveMusic(res,path){
         if(match){
             let readPipe=fs.createReadStream(rootfs+path);
             readPipe.on('error',function(e){
+		console.log('readstream error');
                 readPipe.end();
             }).pipe(res).on('error',function(e){
+		console.log('writestream error');
                 res.end();
             });
         }
