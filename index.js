@@ -3,7 +3,7 @@ const restify = require('restify');
 const taglib = require('taglib2');
 const corsMiddleware=require('restify-cors-middleware');
 
-const root="fs";
+const rootfs="fs";
 
 const hideReg=/^[^.]/;
 const audioReg=/(\.mp3$)|(\.wav$)/;
@@ -65,8 +65,8 @@ function fsController(req,res,next){
     let relativePath=req.url.substring(1);
     if(req.url.charAt(req.url.length-1) === '/'){
         relativePath= req.url.substring(1,req.url.length-1);
-        console.log(req.url.length);
     }
+    console.log("url request: "+req.url+", formatted url: "+relativePath);
     try{
         if(fs.lstatSync(relativePath).isDirectory()){
             genFS(relativePath,res);
@@ -86,7 +86,7 @@ function fsController(req,res,next){
 //functions for music route
 function listMusic(res){
     try{
-        let ret = recursiveDir(root,audioReg,false);
+        let ret = recursiveDir(rootfs,audioReg,false);
         for(let i = 0;i<ret.length;i++){
                 //synchronously add metadata to this... gotta find a library (probably use taglib)
                 try{
@@ -114,17 +114,21 @@ function serveMusic(res,path){
         }
     }catch(err)
     {
-
+	console.log(err);
     }
 }
 function musicController(req,res,next){
     console.log(req.url);
     //console.log(res.header('Access-Control-Allow-Origin','*'));
+    let path = req.url;
+    if(path.charAt(path.length-1)=='/'){
+	path=path.substring(0,path.length-1);
+    }
+    console.log("url request: "+req.url+", formatted url: "+path);
     try{
-        if(req.url==='/music'){
+        if(path==='/music'){
             listMusic(res);
         } else{
-            console.log(req.url.substring(6));
             serveMusic(res,req.url.substring(6));
         }
     }catch(err){
