@@ -1,1 +1,4 @@
-https://gist.github.com/dtrce/1204243
+SPIDIR
+
+reads files in specified root folder.
+

@@ -6,7 +6,7 @@ const corsMiddleware=require('restify-cors-middleware');
 const rootfs="../Dropbox";
 
 const hideReg=/^[^.]/;
-const audioReg=/(\.mp3$)|(\.wav$)/;
+const audioReg=/(.flac$)|(\.mp3$)|(\.wav$)|(.ogg$)/;
 
 //generates list of files matching regex
 function recursiveDir(path,reg,inc){

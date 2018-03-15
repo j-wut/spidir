@@ -1,10 +1,11 @@
 {
   "name": "spidir",
   "version": "1.0.0",
-  "description": "https://gist.github.com/dtrce/1204243",
+  "description": "gives List of files in directory in json.  Use /music to get tag information or to stream specific files",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "daemon": "pm2 start index.js --name spidir"
   },
   "repository": {
     "type": "git",
